@@ -25,13 +25,9 @@ class MCPClient:
             args=self._args,
             env=self._env,
         )
-        stdio_transport = await self._exit_stack.enter_async_context(
-            stdio_client(server_params)
-        )
+        stdio_transport = await self._exit_stack.enter_async_context(stdio_client(server_params))
         _stdio, _write = stdio_transport
-        self._session = await self._exit_stack.enter_async_context(
-            ClientSession(_stdio, _write)
-        )
+        self._session = await self._exit_stack.enter_async_context(ClientSession(_stdio, _write))
         await self._session.initialize()
 
     def session(self) -> ClientSession:
@@ -42,18 +38,17 @@ class MCPClient:
         return self._session
 
     async def list_tools(self) -> list[types.Tool]:
-        # TODO: Return a list of tools defined by the MCP server
-        return []
+        result = await self.session().list_tools()
+        # print("list_tools result:", result)
+        return result.tools
 
-    async def call_tool(
-        self, tool_name: str, tool_input: dict
-    ) -> types.CallToolResult | None:
-        # TODO: Call a particular tool and return the result
-        return None
+    async def call_tool(self, tool_name: str, tool_input: dict) -> types.CallToolResult | None:
+        return await self.session().call_tool(tool_name, tool_input)
 
     async def list_prompts(self) -> list[types.Prompt]:
-        # TODO: Return a list of prompts defined by the MCP server
-        return []
+        result = await self.session().list_prompts()
+        print("list_prompts result:", result)
+        return result.prompts
 
     async def get_prompt(self, prompt_name, args: dict[str, str]):
         # TODO: Get a particular prompt defined by the MCP server
@@ -82,7 +77,8 @@ async def main():
         command="uv",
         args=["run", "mcp_server.py"],
     ) as _client:
-        pass
+        result = await _client.list_tools()
+        print("Tools:", result)
 
 
 if __name__ == "__main__":
