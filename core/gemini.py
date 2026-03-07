@@ -154,6 +154,8 @@ class Gemini:
         # Check for function calls in response
         function_calls = []
         for candidate in response.candidates or []:
+            if not candidate.content:
+                continue
             for part in candidate.content.parts or []:
                 if part.function_call:
                     function_calls.append(part.function_call)
